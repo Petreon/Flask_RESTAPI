@@ -1,20 +1,38 @@
 from flask import Flask, request
-from flask_restful import Api, Resource, reqparse
+from flask_restful import Api, Resource, reqparse, abort
 
 app = Flask(__name__)
 api = Api(app)
 
+## this is used to validate if all inputs in the put are what we are expecting
+video_put_args = reqparse.RequestParser()
+video_put_args.add_argument("name", type=str,help="Name of the video not send", required=True) ## help i what return if dont send the video name
+video_put_args.add_argument("likes", type=int,help="Likes of the video not send", required=True)
+video_put_args.add_argument("views", type=int,help="Views of the video not send", required=True) 
+
+
 videos = {}
+
+
+def handle_video_get_exists(video_id):
+    if video_id not in videos:
+        ## this is the correct way to handle
+        abort(404, message=f"video {video_id} does not exists")
 
 
 class Video(Resource):
     def get(self, video_id):
+        handle_video_get_exists(video_id)
         return videos[video_id]
     
     def put(self, video_id):
         # adding videos in the dictionary, taking the body with request
-        print(request.form)
+        #print(request.form)
         # but we can do this using the reparser from the flask_restapi
+        args = video_put_args.parse_args()
+        #print(args)
+        videos[video_id] = args
+        return videos[video_id],201 ## 201 response to created, 200 is to okay
     
 api.add_resource(Video,"/video/<int:video_id>")
 
