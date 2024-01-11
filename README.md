@@ -25,5 +25,5 @@ you can see methods examples in the tests.py file
 - $ source venv/bin/activate
 
 4. Start the server
-- $ python3 main.py
+- $ python3 main.py <br>
     attention: if you want to deploy it, turn off the debug mode
