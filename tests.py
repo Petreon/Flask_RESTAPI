@@ -4,15 +4,29 @@ import requests
 
 BASEurl = "http://127.0.0.1:5000/" ## location of the API
 
-Video_response = requests.put(BASEurl + "video/1", json={"name":"first_video","likes":10,"views":1000})
-## putting the json attribute we set the header for application/json
-print(Video_response.json())
-print(Video_response.status_code)
+data = [{"name":"first_video","likes":10,"views":1000},
+        {"name":"second_video","likes":10324,"views":100430},
+        {"name":"third_video","likes":1023,"views":100210}]
 
-input()
 
-Video_response = requests.get(BASEurl + "video/2")
-print(Video_response.json())
+for i in range(0,3):
+    Video_response = requests.put(BASEurl + f"videos/{i+1}", json=data[i])
+    ## putting the json attribute we set the header for application/json
+    print(Video_response.json())
+    print(Video_response.status_code)
+
+
+for i in range(0,3):
+    Video_response = requests.get(BASEurl + f"videos/{i+1}")
+    print(Video_response.json())
+    print(Video_response.status_code)
+
+for i in range(0,3):
+    Video_response = requests.delete(BASEurl + f"videos/{i+1}")
+    print(Video_response)
+    #in delete methods we dont response any json data only the status code
+    #print(Video_response.status_code)
+
 
 
 
