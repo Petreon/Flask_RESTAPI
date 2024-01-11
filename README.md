@@ -18,12 +18,15 @@ you can see methods examples in the tests.py file
 1. First create an venv for the application
 - $ python3 -m venv venv
 
-2. Install the dependencies
+2. Clone the application
+- $ git clone https://github.com/Petreon/Flask_RESTAPI.git
+
+3. Install the dependencies
 - $ pip3 install -r requirements.txt
 
-3. Start the enviroment
+4. Start the enviroment
 - $ source venv/bin/activate
 
-4. Start the server
+5. Start the server
 - $ python3 main.py <br>
     attention: if you want to deploy it, turn off the debug mode
