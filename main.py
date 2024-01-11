@@ -1,8 +1,28 @@
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse, abort
 
+#importing flask_sqlalchemy to persist data
+from flask_sqlalchemy import SQLAlchemy
+
 app = Flask(__name__)
 api = Api(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///database.db"
+db = SQLAlchemy(app)
+
+
+class VideoModel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    views = db.Column(db.Integer, nullable=False)
+    likes = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"video (name = {self.name}, views = {self.views}, likes = {self.likes})"
+
+
+## the createall only can be initiallized one time, so i need to comment this in the next time, have better ways to do this but in this tutorial i use that
+#with app.app_context():
+#    db.create_all()
 
 ## this is used to validate if all inputs in the put are what we are expecting
 video_put_args = reqparse.RequestParser()
@@ -11,7 +31,7 @@ video_put_args.add_argument("likes", type=int,help="Likes of the video not send"
 video_put_args.add_argument("views", type=int,help="Views of the video not send", required=True) 
 
 
-videos = {}
+videos = {} #we dont need dictionary anymore because we are putting the things in the database
 
 
 def handle_video_get_exists(video_id):
