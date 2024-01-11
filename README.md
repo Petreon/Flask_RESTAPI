@@ -2,7 +2,7 @@
 Creating a Flaks REST API to learn new concepts about it
 This is a simple API that you can do a full CRUD of name,views and likes for video
 
-# Routes for the API
+## Routes for the API
 - GET method, /videos/int:videoid , get the data of video if exists
 
 - PUT method, /videos/int:videoid , with the json of your video {"name":"example","views":integer,"likes":integer}
@@ -14,7 +14,7 @@ This is a simple API that you can do a full CRUD of name,views and likes for vid
 
 you can see methods examples in the tests.py file
 
-# How to install
+## How to install
 1. First create an venv for the application
 - $ python3 -m venv venv
 
