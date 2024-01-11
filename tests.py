@@ -1,6 +1,6 @@
 ## testing the main.py with request module
 
-import requests
+import requests, json
 
 BASEurl = "http://127.0.0.1:5000/" ## location of the API
 
@@ -16,20 +16,28 @@ for i in range(0,3):
     print(Video_response.status_code)
 
 
-for i in range(0,3):
+for i in range(0,4):
     Video_response = requests.get(BASEurl + f"videos/{i+1}")
     print(Video_response.json())
     print(Video_response.status_code)
 
-for i in range(0,3):
-    Video_response = requests.delete(BASEurl + f"videos/{i+1}")
-    print(Video_response)
+#for i in range(0,3):
+#    Video_response = requests.delete(BASEurl + f"videos/{i+1}")
+#    print(Video_response)
     #in delete methods we dont response any json data only the status code
     #print(Video_response.status_code)
 
+Video_response = requests.patch(BASEurl + "videos/1", json={"likes":999, "name":"new_video1"})
+print(Video_response.status_code)
+data = Video_response.text
+data_json = json.loads(data)
+print(data_json)
 
 
-
+# testing delete
+Video_response = requests.delete(BASEurl + "videos/2")
+print(Video_response.text)
+print(Video_response.status_code)
 
 
 

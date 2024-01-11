@@ -1,5 +1,5 @@
-from flask import Flask, request
-from flask_restful import Api, Resource, reqparse, abort
+from flask import Flask, request, jsonify
+from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 
 #importing flask_sqlalchemy to persist data
 from flask_sqlalchemy import SQLAlchemy
@@ -16,13 +16,13 @@ class VideoModel(db.Model):
     views = db.Column(db.Integer, nullable=False)
     likes = db.Column(db.Integer, nullable=False)
 
-    def __repr__(self) -> str:
-        return f"video (name = {self.name}, views = {self.views}, likes = {self.likes})"
+    def __repr__(self,name=name,views=views,likes=likes) -> str:
+        return f"video (name = {name}, views = {views}, likes = {likes})"
 
 
-## the createall only can be initiallized one time, so i need to comment this in the next time, have better ways to do this but in this tutorial i use that
-#with app.app_context():
-#    db.create_all()
+## if the database isnt create the db.create_all() will create on for us, but if its create it wont do nothing
+with app.app_context():
+    db.create_all()
 
 ## this is used to validate if all inputs in the put are what we are expecting
 video_put_args = reqparse.RequestParser()
@@ -30,41 +30,80 @@ video_put_args.add_argument("name", type=str,help="Name of the video not send", 
 video_put_args.add_argument("likes", type=int,help="Likes of the video not send", required=True)
 video_put_args.add_argument("views", type=int,help="Views of the video not send", required=True) 
 
+#have better ways to do this, but i will stay with that
+video_update_args = reqparse.RequestParser()
+video_update_args.add_argument("name", type=str,help="Name of the video not send", )
+video_update_args.add_argument("likes", type=int,help="Likes of the video not send", )
+video_update_args.add_argument("views", type=int,help="Views of the video not send", )
 
-videos = {} #we dont need dictionary anymore because we are putting the things in the database
 
-
-def handle_video_get_exists(video_id):
-    if video_id not in videos:
-        ## this is the correct way to handle
-        abort(404, message=f"video {video_id} does not exists")
-
-def handle_video_put_exists(video_id):
-    if video_id in videos:
-        abort(409, message=f"video {video_id} already exists")
-        ## 409 is for an content is already created
-
+resource_fields = {
+    #serializing the data getting from de database to give a correctly response
+    'id':fields.Integer,
+    'name':fields.String,
+    'views':fields.Integer,
+    'likes':fields.Integer
+}
 
 class Video(Resource):
+    #a way to serialize the data do return the response
+    @marshal_with(resource_fields) # serialize the result with resource_fields
     def get(self, video_id):
-        handle_video_get_exists(video_id)
-        return videos[video_id]
+        result = VideoModel.query.filter_by(id=video_id).first()
+
+        if not result:
+            abort(404,message=f"Video with id = {video_id} not found")
+        # we need to serialize the result that is an instance of VideoModel
+
+        return result
     
+    @marshal_with(resource_fields)
     def put(self, video_id):
-        # adding videos in the dictionary, taking the body with request
-        #print(request.form)
         # but we can do this using the reparser from the flask_restapi
-        handle_video_put_exists(video_id)
         args = video_put_args.parse_args()
         #print(args)
-        videos[video_id] = args
-        return videos[video_id],201 ## 201 response to created, 200 is to okay
+        result = VideoModel.query.filter_by(id=video_id).first()
+
+        if result:
+            ## aborting if already have an result in the database
+            abort(409, message=f"video with id = {video_id} already exists")
+
+        video = VideoModel(id=video_id, name=args['name'], views=args['views'], likes=args['likes'])
+        db.session.add(video)
+        db.session.commit()
+        return video,201 ## 201 response to created, 200 is to okay
+    
+    @marshal_with(resource_fields)
+    def patch(self, video_id):
+        args = video_update_args.parse_args()
+        result = VideoModel.query.filter_by(id=video_id).first()
+        if not result:
+            abort(404,f"Video with id = {video_id} not found")
+        
+        #have better ways to do this to
+        if args["name"] is not None:
+            result.name = args["name"]
+        if args["views"] is not None:
+            result.views = args["views"]
+        if args["likes"] is not None:
+            result.likes = args["likes"]
+        
+        db.session.add(result) # this not need but i will stay
+        db.session.commit()
+
+    
+        return result
+
     
     def delete(self, video_id):
-        handle_video_get_exists(video_id)
-        #print(videos)
-        del videos[video_id]
-        #print(videos)
+        result = VideoModel.query.filter_by(id=video_id).first()
+
+        if not result:
+            abort(404,f"Video with id = {video_id} not found")
+
+        db.session.delete(result)
+        db.session.commit()
+
         return {"data":f"video {video_id} removed"}, 204
     
 api.add_resource(Video,"/videos/<int:video_id>")
